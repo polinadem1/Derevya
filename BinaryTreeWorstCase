@@ -1,0 +1,16 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Данные
+key_counts = np.arange(1000, 10001, 1000)  # Количество ключей
+heights_worst_case = key_counts  # Высота в худшем случае равна количеству ключей
+
+# График
+plt.figure(figsize=(10, 6))
+plt.plot(key_counts, heights_worst_case, marker='o', linestyle='-', color='blue', label="Худший случай (h = n)")
+plt.title('Высота дерева в худшем случае (монотонные ключи)')
+plt.xlabel('Количество ключей (n)')
+plt.ylabel('Высота дерева (h)')
+plt.grid(True)
+plt.legend()
+plt.show()
