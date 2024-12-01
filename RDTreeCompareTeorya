@@ -1,0 +1,153 @@
+import random
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Определение структуры узла красно-черного дерева
+class RBTNode:
+    def init(self, key, color="RED", parent=None):
+        self.key = key
+        self.color = color
+        self.left = None
+        self.right = None
+        self.parent = parent
+
+# Класс красно-черного дерева
+class RBTree:
+    def init(self):
+        self.nil = RBTNode(None, color="BLACK")  # NIL-узел
+        self.root = self.nil
+
+    def left_rotate(self, x):
+        y = x.right
+        x.right = y.left
+        if y.left != self.nil:
+            y.left.parent = x
+        y.parent = x.parent
+        if x.parent == None:
+            self.root = y
+        elif x == x.parent.left:
+            x.parent.left = y
+        else:
+            x.parent.right = y
+        y.left = x
+        x.parent = y
+
+    def right_rotate(self, x):
+        y = x.left
+        x.left = y.right
+        if y.right != self.nil:
+            y.right.parent = x
+        y.parent = x.parent
+        if x.parent == None:
+            self.root = y
+        elif x == x.parent.right:
+            x.parent.right = y
+        else:
+            x.parent.left = y
+        y.right = x
+        x.parent = y
+
+    def insert_fixup(self, z):
+        while z.parent and z.parent.color == "RED":  # Добавлено "z.parent and"
+            if z.parent == z.parent.parent.left:
+                y = z.parent.parent.right
+                if y.color == "RED":
+                    z.parent.color = "BLACK"
+                    y.color = "BLACK"
+                    z.parent.parent.color = "RED"
+                    z = z.parent.parent
+                else:
+                    if z == z.parent.right:
+                        z = z.parent
+                        self.left_rotate(z)
+                    z.parent.color = "BLACK"
+                    z.parent.parent.color = "RED"
+                    self.right_rotate(z.parent.parent)
+            else:
+                y = z.parent.parent.left
+                if y.color == "RED":
+                    z.parent.color = "BLACK"
+                    y.color = "BLACK"
+                    z.parent.parent.color = "RED"
+                    z = z.parent.parent
+                else:
+                    if z == z.parent.left:
+                        z = z.parent
+                        self.right_rotate(z)
+                    z.parent.color = "BLACK"
+                    z.parent.parent.color = "RED"
+                    self.left_rotate(z.parent.parent)
+        self.root.color = "BLACK"
+
+    def insert(self, key):
+        z = RBTNode(key)
+        z.left = self.nil
+        z.right = self.nil
+        z.parent = None
+        y = None
+        x = self.root
+        while x != self.nil:
+            y = x
+            if z.key < x.key:
+                x = x.left
+            else:
+                x = x.right
+        z.parent = y
+        if y == None:  # Если дерево пустое
+            self.root = z
+            z.color = "BLACK"  # Корень дерева всегда чёрный
+        elif z.key < y.key:
+            y.left = z
+        else:
+            y.right = z
+        z.color = "RED"
+        self.insert_fixup(z)
+
+    def height(self, node=None):
+        if node is None:
+            node = self.root
+        if node == self.nil:
+            return 0
+        return 1 + max(self.height(node.left), self.height(node.right))
+
+# Функция для генерации высоты RBT для случайных ключей
+def get_rbt_heights(key_counts, max_key_value=10000):
+    rbt_heights_random = []
+    for count in key_counts:
+        rbt_tree = RBTree()
+        if count > max_key_value:
+            raise ValueError("Количество ключей больше доступных чисел в диапазоне.")
+        keys = random.sample(range(1, max_key_value + 1), count)  # Генерация случайных ключей
+        for key in keys:
+            rbt_tree.insert(key)
+        rbt_heights_random.append(rbt_tree.height())
+    return rbt_heights_random
+
+# Количество ключей от 1000 до 10000
+key_counts = np.arange(1000, 10001, 1000)
+
+# Получим высоты для RBT
+rbt_heights = get_rbt_heights(key_counts)
+# Теоретическая оценка высоты для RBT
+theoretical_heights = [2 * np.log2(n + 1) for n in key_counts]
+
+# Создадим таблицу для отображения данных
+data = {'Количество ключей': key_counts, 'Высота RBT': rbt_heights, 'Теоретическая высота': theoretical_heights}
+df = pd.DataFrame(data)
+
+# Выводим таблицу
+print(df)
+
+# Построим график
+plt.figure(figsize=(10, 6))
+plt.plot(key_counts, rbt_heights, label="Реальная высота RBT", marker='o', linestyle='-', color='red')
+plt.plot(key_counts, theoretical_heights, label="Теоретическая высота", marker='x', linestyle='--', color='blue')
+plt.title('Сравнение высоты красно-черного дерева с теоретической оценкой')
+plt.xlabel('Количество ключей')
+plt.ylabel('Высота дерева')
+plt.legend()
+plt.grid(True)
+plt.xscale('log')  # Логарифмическая шкала по оси X
+plt.yscale('linear')  # Линейная шкала по оси Y
+plt.show()
