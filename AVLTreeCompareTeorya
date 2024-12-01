@@ -1,0 +1,110 @@
+import random
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Определение структуры AVL-узла
+class AVLNode:
+    def __init__(self, key, height=1):
+        self.key = key
+        self.height = height
+        self.left = None
+        self.right = None
+
+# Класс AVL-дерева
+class AVLTree:
+    def __init__(self):
+        self.root = None
+
+    def get_height(self, node):
+        return node.height if node else 0
+
+    def get_balance(self, node):
+        return self.get_height(node.left) - self.get_height(node.right)
+
+    def rotate_right(self, y):
+        x = y.left
+        T = x.right
+        x.right = y
+        y.left = T
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        x.height = 1 + max(self.get_height(x.left), self.get_height(x.right))
+        return x
+
+    def rotate_left(self, x):
+        y = x.right
+        T = y.left
+        y.left = x
+        x.right = T
+        x.height = 1 + max(self.get_height(x.left), self.get_height(x.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        return y
+
+    def insert(self, node, key):
+        if not node:
+            return AVLNode(key)
+        if key < node.key:
+            node.left = self.insert(node.left, key)
+        else:
+            node.right = self.insert(node.right, key)
+
+        node.height = 1 + max(self.get_height(node.left), self.get_height(node.right))
+        balance = self.get_balance(node)
+
+        # Балансировка
+        if balance > 1 and key < node.left.key:
+            return self.rotate_right(node)
+        if balance < -1 and key > node.right.key:
+            return self.rotate_left(node)
+        if balance > 1 and key > node.left.key:
+            node.left = self.rotate_left(node.left)
+            return self.rotate_right(node)
+        if balance < -1 and key < node.right.key:
+            node.right = self.rotate_right(node.right)
+            return self.rotate_left(node)
+
+        return node
+
+    def insert_key(self, key):
+        self.root = self.insert(self.root, key)
+
+    def height(self):
+        return self.get_height(self.root)
+
+# Функция для генерации высоты AVL-дерева для случайных ключей
+def get_avl_heights(key_counts, max_key_value=10000):
+    avl_heights_random = []
+    for count in key_counts:
+        avl_tree = AVLTree()
+        if count > max_key_value:
+            raise ValueError("Количество ключей больше доступных чисел в диапазоне.")
+        keys = random.sample(range(1, max_key_value + 1), count)  # Генерация случайных ключей
+        for key in keys:
+            avl_tree.insert_key(key)
+        avl_heights_random.append(avl_tree.height())
+    return avl_heights_random
+
+# Количество ключей от 1000 до 10000
+key_counts = np.arange(1000, 10001, 1000)
+
+# Получим высоты для AVL
+avl_heights = get_avl_heights(key_counts)
+
+# Создадим таблицу для отображения данных
+data = {'Количество ключей': key_counts, 'Высота AVL-дерева': avl_heights}
+df = pd.DataFrame(data)
+
+# Выводим таблицу
+print(df)
+
+# Построим график
+plt.figure(figsize=(10, 6))
+plt.plot(key_counts, avl_heights, label="AVL Tree (Random Keys)", marker='o', linestyle='-', color='green')
+plt.title('Высота AVL-дерева от количества случайных ключей (1000-10000)')
+plt.xlabel('Количество ключей')
+plt.ylabel('Высота дерева')
+plt.legend()
+plt.grid(True)
+plt.xscale('log')  # Логарифмическая шкала по оси X
+plt.yscale('linear')  # Линейная шкала по оси Y
+plt.show()
