@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# Данные
+key_counts = np.array([1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000])
+heights = np.array([22,23,28,29,27,37,30,29,33,30])
+
+# Логарифмическая модель h(n) = a * log(n) + b
+def log_model(x, a, b):
+    return a * np.log(x) + b
+
+# Подгонка модели
+params, _ = curve_fit(log_model, key_counts, heights)
+a, b = params
+
+# Построение регрессионной кривой
+x_vals = np.linspace(1000, 10000, 500)  # Значения X для кривой
+y_vals = log_model(x_vals, a, b)
+
+# График
+plt.figure(figsize=(10, 6))
+plt.scatter(key_counts, heights, color="blue", label="Фактические данные")
+plt.plot(x_vals, y_vals, color="red", label=f"Регрессия: h(n) = {a:.2f}*log(n) + {b:.2f}")
+plt.title('Регрессионная кривая зависимости высоты дерева от количества ключей')
+plt.xlabel('Количество ключей')
+plt.ylabel('Высота дерева')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Вывод коэффициентов регрессии
+print(f"Коэффициенты регрессии: a = {a:.2f}, b = {b:.2f}")
