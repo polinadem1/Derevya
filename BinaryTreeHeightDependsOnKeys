@@ -1,0 +1,73 @@
+import random
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Определение структуры бинарного дерева поиска
+class BSTNode:
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, key):
+        def _insert(node, key):
+            if not node:
+                return BSTNode(key)
+            if key < node.key:
+                node.left = _insert(node.left, key)
+            else:
+                node.right = _insert(node.right, key)
+            return node
+
+        self.root = _insert(self.root, key)
+
+    def height(self):
+        def _height(node):
+            if not node:
+                return 0
+            return 1 + max(_height(node.left), _height(node.right))
+        return _height(self.root)
+
+# Функция для генерации высоты BST для случайных ключей
+def get_bst_heights(key_counts, max_key_value=10000):
+    bst_heights_random = []
+    for count in key_counts:
+        bst_random = BST()
+        # Убедимся, что мы не пытаемся выбрать больше чисел, чем в диапазоне
+        if count > max_key_value:
+            raise ValueError("Количество ключей больше доступных чисел в диапазоне.")
+        keys = random.sample(range(1, max_key_value+1), count)  # Генерация случайных ключей
+        for key in keys:
+            bst_random.insert(key)
+        bst_heights_random.append(bst_random.height())
+    return bst_heights_random
+
+# Количество ключей от 1000 до 10000
+key_counts = np.arange(1000, 10001, 1000)
+
+# Получим высоты для BST
+bst_heights = get_bst_heights(key_counts)
+
+# Создадим таблицу для отображения данных
+data = {'Количество ключей': key_counts, 'Высота дерева': bst_heights}
+df = pd.DataFrame(data)
+
+# Выводим таблицу
+print(df)
+
+# Построим график
+plt.figure(figsize=(10, 6))
+plt.plot(key_counts, bst_heights, label="BST Tree (Random Keys)", marker='o', linestyle='-', color='blue')
+plt.title('Высота дерева поиска от количества случайных ключей (1000-10000)')
+plt.xlabel('Количество ключей')
+plt.ylabel('Высота дерева')
+plt.legend()
+plt.grid(True)
+plt.xscale('log')  # Логарифмическая шкала по оси X
+plt.yscale('linear')  # Линейная шкала по оси Y
+plt.show()
